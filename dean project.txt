@@ -1,0 +1,142 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Collections;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using System.Windows.Threading;
+using System.IO;
+using System.Windows.Controls.DataVisualization.Charting;
+
+namespace Interface_Assignment_V1._2_DeanDevereaux
+{
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        public List<KeyValuePair<string, int>> valueList = new List<KeyValuePair<string, int>>();
+
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            //Sending files into designated listbox depending on extension
+            string[] dat_filePaths = Directory.GetFiles(@"F:\ELX3 Semester 2\Interface Programming\Assignment\Interface Assignment\MixedFiles", "*.dat");//Gets Files with .dat extension
+            foreach (string dat_file in dat_filePaths)  //goes through each file
+            {
+                FileInfo dat = new FileInfo(dat_file);  //Declare
+                string dat_name = dat.Name;             //Convert File name to string
+                datbox.Items.Add(dat_name);             //adds name to list box
+            }
+
+            string[] info_filePaths = Directory.GetFiles(@"F:\ELX3 Semester 2\Interface Programming\Assignment\Interface Assignment\MixedFiles", "*.info");
+            ArrayList infoList = new ArrayList();//Needed for Chart
+            foreach (string info_file in info_filePaths)
+            {
+                FileInfo info = new FileInfo(info_file);
+                string info_name = info.Name;
+                infoList.Add(new KeyValuePair<string, long>(info_name, info.Length));
+                infobox.Items.Add(info_name);
+            }
+
+        }
+
+        //Show Time and Date
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            DispatcherTimer dispatcherTimer = new DispatcherTimer();
+            dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
+            dispatcherTimer.Start();
+        }
+
+        private void dispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            txtbox.Items.Add(DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
+            CommandManager.InvalidateRequerySuggested();
+            txtbox.Items.RemoveAt(0);
+            txtbox.SelectedItem = txtbox.Items.CurrentItem;
+        }
+        
+         private void txtbox_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+        }
+
+        //Double click listbox and copy selected file to another folder. should remove file from listbox
+        private void txtbox1_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (datbox.SelectedValue != null)
+            {
+                string datFileName = datbox.SelectedValue.ToString();
+                string dat_sourcePath = @"F:\ELX3 Semester 2\Interface Programming\Assignment\Interface Assignment\MixedFiles";
+                string dat_targetPath = @"F:\ELX3 Semester 2\Interface Programming\Assignment\Interface Assignment\DatFiles";
+
+                string dat_sourceFile = System.IO.Path.Combine(dat_sourcePath, datFileName);
+                string dat_destFile = System.IO.Path.Combine(dat_targetPath, datFileName);
+                System.IO.File.Copy(dat_sourceFile, dat_destFile, true); 
+            }
+        }
+
+        //Double click listbox and copy selected file to another folder. should remove file from listbox
+        private void infobox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (infobox.SelectedValue != null)
+            {
+                string infoFileName = infobox.SelectedValue.ToString();
+                string info_sourcePath1 = @"F:\ELX3 Semester 2\Interface Programming\Assignment\Interface Assignment\MixedFiles";
+                string info_targetPath1 = @"F:\ELX3 Semester 2\Interface Programming\Assignment\Interface Assignment\InfoFiles";
+
+                string info_sourceFile1 = System.IO.Path.Combine(info_sourcePath1, infoFileName);
+                string info_destFile1 = System.IO.Path.Combine(info_targetPath1, infoFileName);
+                System.IO.File.Copy(info_sourceFile1, info_destFile1, true);
+            }
+        }
+        //Click Info button and graph data on a chart
+        private void infobutton_Click(object sender, RoutedEventArgs e)
+        {
+            infochart.DataContext = null;
+            valueList.Clear();
+            infochart.Title = "Info Files";
+            infochart.Series[0].LegendItems[0] = "File Size";
+            string[] info_filePaths = Directory.GetFiles(@"F:\ELX3 Semester 2\Interface Programming\Assignment\Interface Assignment\MixedFiles", "*.info");
+            ArrayList infoList = new ArrayList();//Needed for Chart
+            foreach (string info_file in info_filePaths)
+            {
+                FileInfo info = new FileInfo(info_file);
+                string info_name = info.Name;
+                infoList.Add(new KeyValuePair<string, long>(info_name, info.Length));
+            }
+            infochart.DataContext = infoList;
+            // Trick to allow chart to display without crashing the program
+            stack2.Visibility = System.Windows.Visibility.Visible;
+        }
+        //Click Dat button and graph data on a chart
+        private void datbutton_Click(object sender, RoutedEventArgs e)
+        {
+            datchart.DataContext = null;
+            datchart.Title = "Dat Files";
+            datchart.Series[0].LegendItems[0] = "File Size";
+            string[] dat_filePaths = Directory.GetFiles(@"F:\ELX3 Semester 2\Interface Programming\Assignment\Interface Assignment\MixedFiles", "*.dat");
+            ArrayList datList = new ArrayList(); //Needed for Chart
+            foreach (string dat_file in dat_filePaths)
+            {
+                FileInfo dat = new FileInfo(dat_file);
+                string dat_name = dat.Name;
+                datList.Add(new KeyValuePair<string, long>(dat_name, dat.Length));
+                datchart.DataContext = datList;
+            }
+            // Trick to allow chart to display without crashing the program
+            StackPanel1.Visibility = System.Windows.Visibility.Visible;
+        }
+    }
+}
